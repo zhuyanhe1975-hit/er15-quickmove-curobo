@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot name="er15_1400_approx">
+  <!-- Approximate software-integration model. Replace with official EFORT URDF/CAD model before production use. -->
+  <link name="base_link">
+    <visual><origin xyz="0 0 0.12"/><geometry><cylinder radius="0.18" length="0.24"/></geometry></visual>
+    <collision><origin xyz="0 0 0.12"/><geometry><cylinder radius="0.18" length="0.24"/></geometry></collision>
+  </link>
+  <link name="link1">
+    <visual><origin xyz="0 0 0.16"/><geometry><cylinder radius="0.12" length="0.32"/></geometry></visual>
+    <collision><origin xyz="0 0 0.16"/><geometry><cylinder radius="0.12" length="0.32"/></geometry></collision>
+  </link>
+  <joint name="j1" type="revolute">
+    <parent link="base_link"/><child link="link1"/>
+    <origin xyz="0 0 0.24" rpy="0 0 0"/><axis xyz="0 0 1"/>
+    <limit lower="-2.967059728" upper="2.967059728" velocity="4.537856055" effort="900"/>
+  </joint>
+  <link name="link2">
+    <visual><origin xyz="0.32 0 0"/><geometry><box size="0.64 0.14 0.16"/></geometry></visual>
+    <collision><origin xyz="0.32 0 0"/><geometry><box size="0.64 0.14 0.16"/></geometry></collision>
+  </link>
+  <joint name="j2" type="revolute">
+    <parent link="link1"/><child link="link2"/>
+    <origin xyz="0 0 0.32" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-2.792526803" upper="1.570796327" velocity="4.450589593" effort="900"/>
+  </joint>
+  <link name="link3">
+    <visual><origin xyz="0.27 0 0"/><geometry><box size="0.54 0.12 0.14"/></geometry></visual>
+    <collision><origin xyz="0.27 0 0"/><geometry><box size="0.54 0.12 0.14"/></geometry></collision>
+  </link>
+  <joint name="j3" type="revolute">
+    <parent link="link2"/><child link="link3"/>
+    <origin xyz="0.64 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-1.483529864" upper="3.054326191" velocity="3.665191429" effort="700"/>
+  </joint>
+  <link name="link4">
+    <visual><origin xyz="0.09 0 0"/><geometry><cylinder radius="0.075" length="0.18"/></geometry></visual>
+    <collision><origin xyz="0.09 0 0"/><geometry><cylinder radius="0.075" length="0.18"/></geometry></collision>
+  </link>
+  <joint name="j4" type="revolute">
+    <parent link="link3"/><child link="link4"/>
+    <origin xyz="0.54 0 0" rpy="0 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.316125579" upper="3.316125579" velocity="7.853981634" effort="260"/>
+  </joint>
+  <link name="link5">
+    <visual><origin xyz="0 0 0.08"/><geometry><cylinder radius="0.065" length="0.16"/></geometry></visual>
+    <collision><origin xyz="0 0 0.08"/><geometry><cylinder radius="0.065" length="0.16"/></geometry></collision>
+  </link>
+  <joint name="j5" type="revolute">
+    <parent link="link4"/><child link="link5"/>
+    <origin xyz="0.18 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-2.268928028" upper="2.268928028" velocity="7.853981634" effort="220"/>
+  </joint>
+  <link name="link6">
+    <visual><origin xyz="0 0 0.06"/><geometry><cylinder radius="0.055" length="0.12"/></geometry></visual>
+    <collision><origin xyz="0 0 0.06"/><geometry><cylinder radius="0.055" length="0.12"/></geometry></collision>
+  </link>
+  <joint name="j6" type="revolute">
+    <parent link="link5"/><child link="link6"/>
+    <origin xyz="0 0 0.16" rpy="0 0 0"/><axis xyz="0 0 1"/>
+    <limit lower="-6.283185307" upper="6.283185307" velocity="10.471975512" effort="120"/>
+  </joint>
+  <link name="tool0"/>
+  <joint name="tool0_fixed" type="fixed">
+    <parent link="link6"/><child link="tool0"/>
+    <origin xyz="0 0 0.12" rpy="0 0 0"/>
+  </joint>
+</robot>
+

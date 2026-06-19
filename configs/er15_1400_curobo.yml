@@ -1,0 +1,43 @@
+robot_cfg:
+  kinematics:
+    format_version: 2.0
+    asset_root_path: /home/yhzhu/IndustrialRobotBase/er15-quickmove-curobo/assets/er15_1400
+    urdf_path: /home/yhzhu/IndustrialRobotBase/er15-quickmove-curobo/assets/er15_1400/ER15-1400-fulldyn-curobo.urdf
+    base_link: base_link
+    tool_frames:
+      - link_6
+    mesh_link_names:
+      - base_link
+      - link_1
+      - link_2
+      - link_3
+      - link_4
+      - link_5
+      - link_6
+    # cuRobo collision spheres are intentionally disabled by default.
+    # The old hand-authored spheres described a simplified cylinder robot and
+    # are not aligned to the real ER15 mesh link frames. Generate spheres from
+    # the real STL meshes before enabling self/world collision checks.
+    collision_link_names: []
+    collision_sphere_buffer: 0.0
+    collision_spheres: null
+    self_collision_buffer: null
+    self_collision_ignore: null
+    cspace:
+      joint_names:
+        - joint_1
+        - joint_2
+        - joint_3
+        - joint_4
+        - joint_5
+        - joint_6
+      cspace_distance_weight: [1.0, 1.0, 1.0, 0.6, 0.6, 0.4]
+      null_space_weight: [1.0, 1.0, 1.0, 0.5, 0.5, 0.4]
+      max_acceleration: 8.0
+      max_jerk: 250.0
+      velocity_scale: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95]
+      acceleration_scale: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85]
+      jerk_scale: [0.75, 0.75, 0.75, 0.75, 0.75, 0.75]
+      position_limit_clip: 0.05
+      default_joint_position: [0.0, -1.0, 1.35, 0.0, 0.65, 0.0]
+    lock_joints: null
