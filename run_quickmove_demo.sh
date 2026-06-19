@@ -32,6 +32,11 @@ printf '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_same_task.py" --no-warmup --json | tee "${OUT_DIR}/same_task_benchmark.json"
 
 printf '
+== Cartesian line payload benchmark ==
+'
+${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_cartesian_line_payload.py" --json | tee "${OUT_DIR}/cartesian_line_payload_benchmark.json"
+
+printf '
 == Visualize QuickMove trajectory ==
 '
 ${ISAACLAB_PY} "${ROOT_DIR}/scripts/visualize_cspace_motion.py" --output-dir "${OUT_DIR}"

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+import tempfile
+from xml.etree import ElementTree as ET
 
 import numpy as np
 
@@ -68,13 +71,49 @@ def smoothstep_resample_path(
 class MujocoTorqueModel:
     """MuJoCo inverse dynamics wrapper for the repository ER15 MJCF model."""
 
-    def __init__(self, paths: ProjectPaths | None = None):
+    def __init__(self, paths: ProjectPaths | None = None, payload_kg: float = 0.0):
         self.paths = paths or ProjectPaths()
+        self.payload_kg = payload_kg
         import mujoco
 
         self.mujoco = mujoco
-        self.model = mujoco.MjModel.from_xml_path(str(self.paths.robot_mjcf))
+        model_path = self._model_path_with_payload(payload_kg)
+        try:
+            self.model = mujoco.MjModel.from_xml_path(str(model_path))
+        finally:
+            if model_path != self.paths.robot_mjcf:
+                Path(model_path).unlink(missing_ok=True)
         self.data = mujoco.MjData(self.model)
+
+    def _model_path_with_payload(self, payload_kg: float) -> Path:
+        if payload_kg <= 0.0:
+            return self.paths.robot_mjcf
+        tree = ET.parse(self.paths.robot_mjcf)
+        link_6 = tree.getroot().find(".//body[@name='link_6']")
+        if link_6 is None:
+            raise RuntimeError("could not locate link_6 body for payload injection")
+        payload = ET.SubElement(link_6, "body", {"name": "rated_payload", "pos": "0 0 0"})
+        ET.SubElement(
+            payload,
+            "inertial",
+            {"pos": "0 0 0", "mass": f"{payload_kg:.9g}", "diaginertia": "0.05 0.05 0.05"},
+        )
+        ET.SubElement(
+            payload,
+            "geom",
+            {
+                "name": "rated_payload_geom",
+                "type": "sphere",
+                "size": "0.08",
+                "rgba": "0.1 0.1 0.1 0.35",
+                "contype": "0",
+                "conaffinity": "0",
+            },
+        )
+        ET.indent(tree, space="  ")
+        with tempfile.NamedTemporaryFile("w", suffix=".xml", dir=self.paths.robot_asset_root, delete=False) as handle:
+            tree.write(handle, encoding="unicode")
+            return Path(handle.name)
 
     def inverse_dynamics(self, positions: np.ndarray, dt: float) -> np.ndarray:
         positions = np.asarray(positions, dtype=float)

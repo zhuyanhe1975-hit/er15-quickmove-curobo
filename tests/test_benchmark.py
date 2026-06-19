@@ -3,12 +3,14 @@ from __future__ import annotations
 import numpy as np
 
 from er15_quickmove.benchmark import (
+    WeightedObjective,
     moveit_like_baseline,
     optional_dependency_results,
     ruckig_like_baseline,
     toppra_like_baseline,
 )
 from er15_quickmove.control import JointControlLimits
+from er15_quickmove.cartesian import cartesian_line_error
 
 
 class FakeTorqueModel:
@@ -50,3 +52,22 @@ def test_optional_dependency_results_include_requested_tools():
     names = {result.name for result in optional_dependency_results()}
 
     assert {"ruckig_python", "toppra_python", "moveit_commander"}.issubset(names)
+
+
+def test_weighted_objective_combines_cycle_time_and_path_error():
+    objective = WeightedObjective(cycle_time_weight=1.0, max_path_error_weight_s_per_m=20.0)
+
+    assert objective.score(0.5, 0.002) == 0.54
+
+
+def test_cartesian_line_error_reports_deviation_from_tcp_line():
+    tcp = np.array([
+        [0.0, 0.0, 0.0],
+        [0.5, 0.01, 0.0],
+        [1.0, 0.0, 0.0],
+    ])
+
+    max_error, rms_error = cartesian_line_error(tcp, np.array([0.0, 0.0, 0.0]), np.array([1.0, 0.0, 0.0]))
+
+    assert np.isclose(max_error, 0.01)
+    assert rms_error > 0.0

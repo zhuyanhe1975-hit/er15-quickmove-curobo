@@ -59,6 +59,8 @@ examples/plan_cspace.py        minimal joint-space QuickMove-like demo
 examples/compare_cspace_profiles.py
                                 baseline vs QuickMove-like cycle-time report
 examples/plan_pose.py          Cartesian pose planning demo
+examples/benchmark_cartesian_line_payload.py
+                                QuickMove+TrueMove line/payload benchmark
 src/er15_quickmove/            Python package
 tests/                         lightweight tests
 ```
@@ -115,6 +117,26 @@ Torque-limited retiming audit:
 ```bash
 TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/torque_limited_time_scaling.py --no-warmup
 ```
+
+
+QuickMove+TrueMove fair benchmark on a TCP straight line with rated payload:
+
+```bash
+TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_cartesian_line_payload.py
+```
+
+This is now the preferred comparison for method validation. It fixes the task as
+a reachable TCP straight line, injects the rated 15 kg payload into the MuJoCo
+dynamics model at runtime, and ranks methods by a weighted objective:
+
+```text
+objective = cycle_time_weight * duration_s
+          + max_path_error_weight_s_per_m * max_tcp_line_error_m
+```
+
+The default weight is `cycle_time + 20 s/m * max TCP line error`. This makes the
+QuickMove part prefer shorter cycle time while the TrueMove part penalizes
+leaving the commanded straight line.
 
 Same-task benchmark against Ruckig/TOPP-RA/MoveIt-style baselines:
 
@@ -180,7 +202,22 @@ saved_time_s=0.600
 saved_percent=50.0
 ```
 
-Current same-task benchmark result:
+Current QuickMove+TrueMove fair benchmark result on a TCP straight line with
+15 kg payload:
+
+```text
+moveit_like_parabolic_line_law:        objective=0.1727 duration=0.1724 s path_error=0.015 mm
+quickmove_truemove_torque_limited_line objective=0.1775 duration=0.1773 s path_error=0.014 mm
+toppra_like_torque_limited_line:       objective=0.1775 duration=0.1773 s path_error=0.014 mm
+ruckig_like_quintic_line_law:          objective=0.1824 duration=0.1821 s path_error=0.016 mm
+endpoint_only_toppra_like_path_retiming objective=0.2074 duration=0.0980 s path_error=5.471 mm
+```
+
+The endpoint-only result is intentionally shown: it can look fast on raw cycle
+time, but it does not satisfy the same TCP straight-line TrueMove task and is
+penalized by the path-error term.
+
+Legacy same-start/same-goal joint-space benchmark result:
 
 ```text
 curobo_quickmove_torque_limited: 0.481 s
@@ -189,10 +226,10 @@ toppra_like_path_retiming:       0.256 s
 moveit_like_iterative_parabolic: 0.501 s
 ```
 
-The TOPP-RA-like baseline retimes a straight joint-space path, so it is a
-same-start/same-goal task comparison rather than an identical-path comparison.
-The direct `ruckig`, `toppra`, and MoveIt adapters are reported as skipped when
-those optional dependencies are not installed.
+The legacy TOPP-RA-like baseline retimes a straight joint-space path, so it is a
+same-start/same-goal task comparison rather than an identical TCP-path
+comparison. The direct `ruckig`, `toppra`, and MoveIt adapters are reported as
+skipped when those optional dependencies are not installed.
 
 Current torque-limited retiming result on the cuRobo quickmove path:
 
@@ -219,7 +256,7 @@ ABB QuickMove is treated here as a behavior target:
 2. Re-run time-optimal finetune passes that shrink trajectory `dt`.
 3. Validate the interpolated plan against velocity, torque/dynamics, collision,
    and convergence constraints. Acceleration and jerk are not direct limits.
-4. Rank solutions by feasibility and motion time.
+4. Rank solutions by feasibility, motion time, and TCP path accuracy when TrueMove mode is enabled.
 
 For production use, generate cuRobo collision spheres from the real STL meshes
 and tune `QuickMoveProfile` plus dynamics limits against measured ER15-1400

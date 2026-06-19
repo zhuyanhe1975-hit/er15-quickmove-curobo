@@ -2,10 +2,19 @@
 
 from er15_quickmove.benchmark import (
     BenchmarkResult,
+    WeightedObjective,
     moveit_like_baseline,
+    run_cartesian_line_payload_benchmark,
     run_same_task_benchmark,
     ruckig_like_baseline,
     toppra_like_baseline,
+)
+from er15_quickmove.cartesian import (
+    CartesianLinePath,
+    CartesianLineTask,
+    MujocoCartesianKinematics,
+    cartesian_line_error,
+    default_line_task,
 )
 from er15_quickmove.config import (
     ER15_LIMIT_SOURCE,
@@ -32,23 +41,30 @@ from er15_quickmove.torque import (
 
 __all__ = [
     "BenchmarkResult",
+    "CartesianLinePath",
+    "CartesianLineTask",
     "ER15_LIMIT_SOURCE",
     "ER15_PUBLIC_LIMITS",
     "ER15QuickMovePlanner",
     "ProjectPaths",
     "QuickMoveProfile",
     "JointControlLimits",
+    "MujocoCartesianKinematics",
     "baseline_profile",
     "audit_torque_limits",
+    "cartesian_line_error",
     "build_control_limits",
+    "default_line_task",
     "find_torque_limited_time_scale",
     "moveit_like_baseline",
     "quickmove_profile",
     "ruckig_like_baseline",
+    "run_cartesian_line_payload_benchmark",
     "run_same_task_benchmark",
     "CycleTimeComparison",
     "MujocoTorqueModel",
     "TorqueLimitReport",
+    "WeightedObjective",
     "TrajectoryLimitReport",
     "smoothstep_resample_path",
     "summarize_joint_trajectory",
