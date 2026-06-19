@@ -15,6 +15,13 @@ from er15_quickmove.metrics import (
     summarize_joint_trajectory,
 )
 from er15_quickmove.quickmove import ER15QuickMovePlanner
+from er15_quickmove.torque import (
+    MujocoTorqueModel,
+    TorqueLimitReport,
+    audit_torque_limits,
+    find_torque_limited_time_scale,
+    smoothstep_resample_path,
+)
 
 __all__ = [
     "ER15_LIMIT_SOURCE",
@@ -24,9 +31,14 @@ __all__ = [
     "QuickMoveProfile",
     "JointControlLimits",
     "baseline_profile",
+    "audit_torque_limits",
     "build_control_limits",
+    "find_torque_limited_time_scale",
     "quickmove_profile",
     "CycleTimeComparison",
+    "MujocoTorqueModel",
+    "TorqueLimitReport",
     "TrajectoryLimitReport",
+    "smoothstep_resample_path",
     "summarize_joint_trajectory",
 ]

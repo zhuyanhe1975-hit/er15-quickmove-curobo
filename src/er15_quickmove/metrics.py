@@ -42,8 +42,8 @@ class CycleTimeComparison:
         return 100.0 * self.saved_time_s / self.baseline.duration_s
 
 
-def _peak_ratio(values: torch.Tensor | None, limits: Sequence[float]) -> float:
-    if values is None:
+def _peak_ratio(values: torch.Tensor | None, limits: Sequence[float] | None) -> float:
+    if values is None or limits is None:
         return 0.0
     limit_tensor = torch.as_tensor(limits, device=values.device, dtype=values.dtype)
     ratio = torch.abs(values) / torch.clamp(limit_tensor.view(1, -1), min=1e-9)
@@ -54,14 +54,19 @@ def summarize_joint_trajectory(
     position: torch.Tensor,
     dt: float,
     velocity_limits: Sequence[float],
-    acceleration_limits: Sequence[float],
-    jerk_limits: Sequence[float],
+    acceleration_limits: Sequence[float] | None,
+    jerk_limits: Sequence[float] | None,
     profile_name: str = "trajectory",
     velocity: torch.Tensor | None = None,
     acceleration: torch.Tensor | None = None,
     jerk: torch.Tensor | None = None,
 ) -> TrajectoryLimitReport:
-    """Summarize limit utilization for a dense joint trajectory."""
+    """Summarize limit utilization for a dense joint trajectory.
+
+    Pass ``None`` for acceleration or jerk limits when they are not direct
+    constraints. In that case the corresponding utilization ratio is reported
+    as 0.0 and does not affect ``is_within_limits``.
+    """
 
     if position.ndim == 3:
         position = position.squeeze(0)

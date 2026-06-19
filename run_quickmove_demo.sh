@@ -22,6 +22,11 @@ printf '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/compare_cspace_profiles.py" --json | tee "${OUT_DIR}/comparison.json"
 
 printf '
+== Torque-limited retiming ==
+'
+${ISAACLAB_PY} "${ROOT_DIR}/examples/torque_limited_time_scaling.py" --no-warmup --json | tee "${OUT_DIR}/torque_limited_retiming.json"
+
+printf '
 == Visualize QuickMove trajectory ==
 '
 ${ISAACLAB_PY} "${ROOT_DIR}/scripts/visualize_cspace_motion.py" --output-dir "${OUT_DIR}"

@@ -164,8 +164,8 @@ class ER15QuickMovePlanner:
     def _apply_profile_to_robot_limits(self) -> None:
         cspace = self.robot_config["robot_cfg"]["kinematics"]["cspace"]
         cspace["velocity_scale"] = [self.profile.velocity_scale] * 6
-        cspace["acceleration_scale"] = [self.profile.acceleration_scale] * 6
-        cspace["jerk_scale"] = [self.profile.jerk_scale] * 6
+        cspace["acceleration_scale"] = [1.0] * 6
+        cspace["jerk_scale"] = [1.0] * 6
 
     def _report(self, result: Any) -> TrajectoryLimitReport | None:
         if result is None or not hasattr(result, "success") or not torch.any(result.success):
@@ -178,14 +178,12 @@ class ER15QuickMovePlanner:
         jerk = plan.jerk.squeeze(0) if plan.jerk is not None else None
 
         velocity_limits = self.control_limits.velocity_upper_rad_s
-        acceleration_limits = [8.0 * self.profile.acceleration_scale] * 6
-        jerk_limits = [250.0 * self.profile.jerk_scale] * 6
         return summarize_joint_trajectory(
             position=position,
             dt=self.profile.interpolation_dt,
             velocity_limits=velocity_limits,
-            acceleration_limits=acceleration_limits,
-            jerk_limits=jerk_limits,
+            acceleration_limits=None,
+            jerk_limits=None,
             profile_name=self.profile.name,
             velocity=velocity,
             acceleration=acceleration,

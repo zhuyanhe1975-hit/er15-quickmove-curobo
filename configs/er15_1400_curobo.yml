@@ -33,11 +33,14 @@ robot_cfg:
         - joint_6
       cspace_distance_weight: [1.0, 1.0, 1.0, 0.6, 0.6, 0.4]
       null_space_weight: [1.0, 1.0, 1.0, 0.5, 0.5, 0.4]
-      max_acceleration: 8.0
-      max_jerk: 250.0
+      # Acceleration and jerk are intentionally not treated as direct robot
+      # limits. Large values keep cuRobo numerically permissive; torque-limited
+      # retiming supplies the physical acceleration bound.
+      max_acceleration: 1000000.0
+      max_jerk: 1000000.0
       velocity_scale: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95]
-      acceleration_scale: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85]
-      jerk_scale: [0.75, 0.75, 0.75, 0.75, 0.75, 0.75]
+      acceleration_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      jerk_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
       position_limit_clip: 0.05
       default_joint_position: [0.0, -1.0, 1.35, 0.0, 0.65, 0.0]
     lock_joints: null

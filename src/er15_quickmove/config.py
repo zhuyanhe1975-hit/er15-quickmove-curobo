@@ -60,8 +60,8 @@ ER15_PUBLIC_LIMITS = {
     ],
     # The public ER15-1400 leaflet publishes wrist payload torque, not actuator
     # torque. These actuator torque values are engineering defaults for method
-    # validation, sized conservatively for a 15 kg / 1.42 m class industrial arm.
-    "actuator_torque_upper_nm": [420.0, 520.0, 360.0, 120.0, 100.0, 60.0],
+    # validation, sized for method validation on a 15 kg / 1.42 m class industrial arm.
+    "actuator_torque_upper_nm": [1800.0, 1200.0, 700.0, 180.0, 140.0, 90.0],
     "actuator_torque_source": "engineering_default_not_vendor_published",
     "wrist_load_torque_upper_nm": [None, None, None, 42.0, 42.0, 20.0],
     "wrist_load_inertia_upper_kgm2": [None, None, None, 2.0, 2.0, 0.7],
@@ -116,8 +116,11 @@ class QuickMoveProfile:
     # flyers. These scales let integration users tune conservatism without
     # editing robot YAML.
     velocity_scale: float = 0.95
-    acceleration_scale: float = 0.85
-    jerk_scale: float = 0.75
+    # Acceleration and jerk are not modeled as direct robot limits. They are
+    # left effectively unbounded in cuRobo; torque-limited retiming determines
+    # usable acceleration from inverse dynamics.
+    acceleration_scale: float = 1.0
+    jerk_scale: float = 1.0
     velocity_limit_source: str = "efort_public_leaflet"
     torque_scale: float = 0.80
 
@@ -138,8 +141,6 @@ def baseline_profile() -> QuickMoveProfile:
         finetune_iters=50,
         velocity_scale=0.55,
         torque_scale=0.50,
-        acceleration_scale=0.45,
-        jerk_scale=0.40,
     )
 
 
@@ -200,11 +201,11 @@ def _fallback_er15_robot_config() -> dict[str, Any]:
                     "joint_names": ER15_PUBLIC_LIMITS["joint_names"],
                     "cspace_distance_weight": [1.0, 1.0, 1.0, 0.6, 0.6, 0.4],
                     "null_space_weight": [1.0, 1.0, 1.0, 0.5, 0.5, 0.4],
-                    "max_acceleration": 8.0,
-                    "max_jerk": 250.0,
+                    "max_acceleration": 1000000.0,
+                    "max_jerk": 1000000.0,
                     "velocity_scale": [0.95] * 6,
-                    "acceleration_scale": [0.85] * 6,
-                    "jerk_scale": [0.75] * 6,
+                    "acceleration_scale": [1.0] * 6,
+                    "jerk_scale": [1.0] * 6,
                     "position_limit_clip": 0.05,
                     "default_joint_position": [0.0, -1.0, 1.35, 0.0, 0.65, 0.0],
                 },

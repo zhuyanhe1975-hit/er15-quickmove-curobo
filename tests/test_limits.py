@@ -17,14 +17,14 @@ def test_public_velocity_limits_match_efort_leaflet():
 def test_control_limits_expose_engineering_actuator_and_wrist_payload_torque():
     limits = build_control_limits(quickmove_profile())
 
-    assert limits.actuator_torque_upper_nm == [336.0, 416.0, 288.0, 96.0, 80.0, 48.0]
-    assert limits.clamp_torque([999.0, -999.0, 1.0, 999.0, -999.0, 999.0]) == [
-        336.0,
-        -416.0,
+    assert limits.actuator_torque_upper_nm == [1440.0, 960.0, 560.0, 144.0, 112.0, 72.0]
+    assert limits.clamp_torque([9999.0, -999.0, 1.0, 999.0, -999.0, 999.0]) == [
+        1440.0,
+        -960.0,
         1.0,
-        96.0,
-        -80.0,
-        48.0,
+        144.0,
+        -112.0,
+        72.0,
     ]
     assert limits.wrist_load_torque_upper_nm == [None, None, None, 42.0, 42.0, 20.0]
     limits.validate_wrist_payload({"joint_4": 42.0, "joint_6": 20.0})

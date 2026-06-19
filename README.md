@@ -5,8 +5,9 @@ cuRobo trajectory optimization.
 
 This project intentionally does not claim to reproduce ABB RobotWare internals.
 It implements the public behavior target: minimize cycle time by aggressively
-using the robot velocity, acceleration, jerk, collision, and optional dynamics
-limits while preserving a feasible trajectory.
+using robot velocity and dynamics limits while preserving a feasible trajectory.
+Acceleration and jerk are audited as trajectory properties, not direct hardware
+limits.
 
 ## Status
 
@@ -35,14 +36,14 @@ page and product leaflet PDF published by EFORT in 2025:
 - Published wrist payload inertia limits: J4 2 kg*m^2, J5 2 kg*m^2,
   J6 0.7 kg*m^2
 - Engineering-default actuator torque limits for method validation:
-  J1 420 N*m, J2 520 N*m, J3 360 N*m, J4 120 N*m, J5 100 N*m, J6 60 N*m
+  J1 1800 N*m, J2 1200 N*m, J3 700 N*m, J4 180 N*m, J5 140 N*m, J6 90 N*m
 
 The public leaflet does not publish actuator/drive torque limits for J1-J6.
 The actuator torque limits above are therefore deliberately marked as
 engineering defaults, not vendor data. They are synchronized into the cuRobo
 URDF `effort` fields and the control API so planning/control experiments have
-reasonable saturation values. Acceleration and jerk are still engineering
-tuning values until controller or servo drive data is supplied.
+reasonable saturation values. Acceleration and jerk are not treated as direct
+robot limits; usable acceleration should come from torque-limited retiming.
 
 Sources:
 
@@ -109,6 +110,18 @@ Baseline vs QuickMove-like comparison:
 TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/compare_cspace_profiles.py
 ```
 
+Torque-limited retiming audit:
+
+```bash
+TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/torque_limited_time_scaling.py --no-warmup
+```
+
+This torque-limited pass removes acceleration/jerk as direct hardware limits.
+It audits the cuRobo path with MuJoCo inverse dynamics and searches for the
+fastest uniform retiming that respects joint velocity and engineering-default
+torque limits. A `--smoothstep` option is available for conservative path-law
+experiments, but the default preserves the cuRobo time law and pushes it toward
+the velocity/torque boundary.
 
 MuJoCo video render with the real ER15-1400 MJCF/STL model:
 
@@ -144,14 +157,30 @@ peak_acceleration_ratio=0.894
 peak_jerk_ratio=0.324
 ```
 
-Current comparison result:
+Current comparison result after removing direct acceleration/jerk limits:
 
 ```text
-baseline_duration_s=2.800
-quickmove_duration_s=2.000
-saved_time_s=0.800
-saved_percent=28.6
+baseline_duration_s=1.200
+quickmove_duration_s=0.600
+saved_time_s=0.600
+saved_percent=50.0
 ```
+
+Current torque-limited retiming result on the same quickmove path:
+
+```text
+quickmove_duration_s=0.600
+torque_limited_duration_s=0.480
+time_scale=0.801
+peak_torque_ratio=0.9997
+peak_velocity_ratio=0.8746
+limiting_joint=joint_2
+```
+
+The J1 static-gravity sanity check is also important: because J1 is the vertical
+base yaw axis, its static gravity torque should be near zero. The torque audit
+uses `tau = M(q) qdd + qfrc_bias(q, qd)` after `mj_forward`, which gives J1 = 0
+for static poses and places the gravity load primarily on J2/J3.
 
 ## How It Maps To QuickMove
 
@@ -160,8 +189,8 @@ ABB QuickMove is treated here as a behavior target:
 1. Solve a feasible path with IK, graph seeding, collision constraints, and
    B-spline trajectory optimization.
 2. Re-run time-optimal finetune passes that shrink trajectory `dt`.
-3. Validate the interpolated plan against velocity, acceleration, jerk,
-   collision, and convergence constraints.
+3. Validate the interpolated plan against velocity, torque/dynamics, collision,
+   and convergence constraints. Acceleration and jerk are not direct limits.
 4. Rank solutions by feasibility and motion time.
 
 For production use, generate cuRobo collision spheres from the real STL meshes
