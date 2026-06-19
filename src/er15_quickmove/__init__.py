@@ -1,5 +1,12 @@
 """QuickMove-like planning for the EFORT ER15-1400 arm."""
 
+from er15_quickmove.benchmark import (
+    BenchmarkResult,
+    moveit_like_baseline,
+    run_same_task_benchmark,
+    ruckig_like_baseline,
+    toppra_like_baseline,
+)
 from er15_quickmove.config import (
     ER15_LIMIT_SOURCE,
     ER15_PUBLIC_LIMITS,
@@ -24,6 +31,7 @@ from er15_quickmove.torque import (
 )
 
 __all__ = [
+    "BenchmarkResult",
     "ER15_LIMIT_SOURCE",
     "ER15_PUBLIC_LIMITS",
     "ER15QuickMovePlanner",
@@ -34,11 +42,15 @@ __all__ = [
     "audit_torque_limits",
     "build_control_limits",
     "find_torque_limited_time_scale",
+    "moveit_like_baseline",
     "quickmove_profile",
+    "ruckig_like_baseline",
+    "run_same_task_benchmark",
     "CycleTimeComparison",
     "MujocoTorqueModel",
     "TorqueLimitReport",
     "TrajectoryLimitReport",
     "smoothstep_resample_path",
     "summarize_joint_trajectory",
+    "toppra_like_baseline",
 ]

@@ -116,6 +116,20 @@ Torque-limited retiming audit:
 TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/torque_limited_time_scaling.py --no-warmup
 ```
 
+Same-task benchmark against Ruckig/TOPP-RA/MoveIt-style baselines:
+
+```bash
+TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_same_task.py --no-warmup
+```
+
+The IsaacLab environment used here does not currently include the real Python
+packages `ruckig`, `toppra`, or ROS MoveIt. The benchmark therefore reports
+those adapters as skipped and includes local like-for-like baselines:
+`ruckig_like_quintic`, `toppra_like_path_retiming`, and
+`moveit_like_iterative_parabolic`. These are useful for method comparison on the
+same ER15 start/goal task, but should be replaced by direct adapters once the
+real packages are installed.
+
 This torque-limited pass removes acceleration/jerk as direct hardware limits.
 It audits the cuRobo path with MuJoCo inverse dynamics and searches for the
 fastest uniform retiming that respects joint velocity and engineering-default
@@ -166,7 +180,21 @@ saved_time_s=0.600
 saved_percent=50.0
 ```
 
-Current torque-limited retiming result on the same quickmove path:
+Current same-task benchmark result:
+
+```text
+curobo_quickmove_torque_limited: 0.481 s
+ruckig_like_quintic:             0.478 s
+toppra_like_path_retiming:       0.256 s
+moveit_like_iterative_parabolic: 0.501 s
+```
+
+The TOPP-RA-like baseline retimes a straight joint-space path, so it is a
+same-start/same-goal task comparison rather than an identical-path comparison.
+The direct `ruckig`, `toppra`, and MoveIt adapters are reported as skipped when
+those optional dependencies are not installed.
+
+Current torque-limited retiming result on the cuRobo quickmove path:
 
 ```text
 quickmove_duration_s=0.600
