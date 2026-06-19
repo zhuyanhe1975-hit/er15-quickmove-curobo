@@ -13,6 +13,7 @@ from er15_quickmove.config import (
     QuickMoveProfile,
     load_er15_robot_config,
 )
+from er15_quickmove.control import JointControlLimits, build_control_limits
 from er15_quickmove.metrics import TrajectoryLimitReport, summarize_joint_trajectory
 
 
@@ -36,6 +37,7 @@ class ER15QuickMovePlanner:
         self.profile = profile or QuickMoveProfile()
         self.paths = paths or ProjectPaths()
         self.robot_config = load_er15_robot_config(self.paths)
+        self.control_limits = build_control_limits(self.profile)
         self._apply_profile_to_robot_limits()
 
         from curobo.motion_planner import MotionPlanner, MotionPlannerCfg
@@ -65,6 +67,10 @@ class ER15QuickMovePlanner:
     @property
     def tool_frames(self) -> list[str]:
         return list(self.planner.tool_frames)
+
+    @property
+    def joint_control_limits(self) -> JointControlLimits:
+        return self.control_limits
 
     def warmup(self, iterations: int = 3) -> None:
         self.planner.warmup(
@@ -171,9 +177,7 @@ class ER15QuickMovePlanner:
         acceleration = plan.acceleration.squeeze(0) if plan.acceleration is not None else None
         jerk = plan.jerk.squeeze(0) if plan.jerk is not None else None
 
-        velocity_limits = [
-            x * self.profile.velocity_scale for x in ER15_PUBLIC_LIMITS["velocity_upper_rad_s"]
-        ]
+        velocity_limits = self.control_limits.velocity_upper_rad_s
         acceleration_limits = [8.0 * self.profile.acceleration_scale] * 6
         jerk_limits = [250.0 * self.profile.jerk_scale] * 6
         return summarize_joint_trajectory(

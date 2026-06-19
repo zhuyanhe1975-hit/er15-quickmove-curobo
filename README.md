@@ -21,18 +21,33 @@ limits while preserving a feasible trajectory.
 - The old project-local cylinder URDF remains only as a fallback/reference asset;
   default planning and visualization paths no longer point to it.
 
-Public ER15-1400 data used here:
+Public ER15-1400 data used here comes from the EFORT ER15-1400 product
+page and product leaflet PDF published by EFORT in 2025:
 
 - Payload: 15 kg
 - Reach: 1420 mm
-- Repeatability: about +/-0.03 mm
+- Repeatability: +/-0.03 mm
 - Joint speed limits: J1 260 deg/s, J2 255 deg/s, J3 210 deg/s,
   J4 450 deg/s, J5 450 deg/s, J6 600 deg/s
 - Joint ranges: J1 +/-170 deg, J2 +90/-160 deg, J3 +175/-85 deg,
   J4 +/-190 deg, J5 +/-130 deg, J6 +/-360 deg
+- Published wrist payload torque limits: J4 42 N*m, J5 42 N*m, J6 20 N*m
+- Published wrist payload inertia limits: J4 2 kg*m^2, J5 2 kg*m^2,
+  J6 0.7 kg*m^2
+- Engineering-default actuator torque limits for method validation:
+  J1 420 N*m, J2 520 N*m, J3 360 N*m, J4 120 N*m, J5 100 N*m, J6 60 N*m
 
-The acceleration, jerk, link geometry, mass, inertia, and collision spheres are
-engineering defaults until official data is supplied.
+The public leaflet does not publish actuator/drive torque limits for J1-J6.
+The actuator torque limits above are therefore deliberately marked as
+engineering defaults, not vendor data. They are synchronized into the cuRobo
+URDF `effort` fields and the control API so planning/control experiments have
+reasonable saturation values. Acceleration and jerk are still engineering
+tuning values until controller or servo drive data is supplied.
+
+Sources:
+
+- EFORT product page: `https://efort.com.cn/index.php/product/product.html`
+- ER15-1400 product leaflet PDF: `https://download.efort.com.cn:20250/pdf/web/upload/2025/05/06/17465086985666xiybb.pdf`
 
 ## Layout
 

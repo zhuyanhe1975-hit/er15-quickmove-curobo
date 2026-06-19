@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="ER15-1400">
+  <!-- joint effort values are engineering defaults for method validation, not vendor-published actuator limits -->
   <link name="base_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -49,7 +50,7 @@
     <parent link="base_link" />
     <child link="link_1" />
     <axis xyz="0 0 1" />
-    <limit lower="-2.967" upper="2.967" effort="1000" velocity="4.53785606" />
+    <limit lower="-2.967" upper="2.967" effort="420.0" velocity="4.53785606" />
   </joint>
   <link name="link_2">
     <inertial>
@@ -78,7 +79,7 @@
     <parent link="link_1" />
     <child link="link_2" />
     <axis xyz="0 0 1" />
-    <limit lower="-2.7925" upper="1.5707963267" effort="1000" velocity="4.45058959" />
+    <limit lower="-2.7925" upper="1.5707963267" effort="520.0" velocity="4.45058959" />
   </joint>
   <link name="link_3">
     <inertial>
@@ -107,7 +108,7 @@
     <parent link="link_2" />
     <child link="link_3" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.4835" upper="3.0543" effort="1000" velocity="3.66519143" />
+    <limit lower="-1.4835" upper="3.0543" effort="360.0" velocity="3.66519143" />
   </joint>
   <link name="link_4">
     <inertial>
@@ -136,7 +137,7 @@
     <parent link="link_3" />
     <child link="link_4" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.316" upper="3.316" effort="1000" velocity="7.85398163" />
+    <limit lower="-3.316" upper="3.316" effort="120.0" velocity="7.85398163" />
   </joint>
   <link name="link_5">
     <inertial>
@@ -165,7 +166,7 @@
     <parent link="link_4" />
     <child link="link_5" />
     <axis xyz="0 0 1" />
-    <limit lower="-2.2689" upper="2.2689" effort="1000" velocity="7.85398163" />
+    <limit lower="-2.2689" upper="2.2689" effort="100.0" velocity="7.85398163" />
   </joint>
   <link name="link_6">
     <inertial>
@@ -194,6 +195,6 @@
     <parent link="link_5" />
     <child link="link_6" />
     <axis xyz="0 0 1" />
-    <limit lower="-6.2832" upper="6.2832" effort="1000" velocity="10.47197551" />
+    <limit lower="-6.2832" upper="6.2832" effort="60.0" velocity="10.47197551" />
   </joint>
 </robot>

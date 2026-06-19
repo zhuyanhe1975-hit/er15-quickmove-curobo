@@ -23,6 +23,14 @@ REAL_ER15_CUROBO_URDF = REAL_ER15_MODEL_ROOT / "ER15-1400-fulldyn-curobo.urdf"
 REAL_ER15_MJCF = REAL_ER15_MODEL_ROOT / "er15-1400.mjcf.xml"
 
 
+ER15_LIMIT_SOURCE = {
+    "vendor": "EFORT ER15-1400 robot product leaflet",
+    "product_page": "https://efort.com.cn/index.php/product/product.html",
+    "pdf": "https://download.efort.com.cn:20250/pdf/web/upload/2025/05/06/17465086985666xiybb.pdf",
+    "pdf_creation_date": "2025-04-28",
+}
+
+
 ER15_PUBLIC_LIMITS = {
     "joint_names": ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"],
     "position_lower_rad": [
@@ -41,6 +49,7 @@ ER15_PUBLIC_LIMITS = {
         deg_to_rad(130),
         deg_to_rad(360),
     ],
+    "velocity_upper_deg_s": [260, 255, 210, 450, 450, 600],
     "velocity_upper_rad_s": [
         deg_to_rad(260),
         deg_to_rad(255),
@@ -49,6 +58,14 @@ ER15_PUBLIC_LIMITS = {
         deg_to_rad(450),
         deg_to_rad(600),
     ],
+    # The public ER15-1400 leaflet publishes wrist payload torque, not actuator
+    # torque. These actuator torque values are engineering defaults for method
+    # validation, sized conservatively for a 15 kg / 1.42 m class industrial arm.
+    "actuator_torque_upper_nm": [420.0, 520.0, 360.0, 120.0, 100.0, 60.0],
+    "actuator_torque_source": "engineering_default_not_vendor_published",
+    "wrist_load_torque_upper_nm": [None, None, None, 42.0, 42.0, 20.0],
+    "wrist_load_inertia_upper_kgm2": [None, None, None, 2.0, 2.0, 0.7],
+    "source": ER15_LIMIT_SOURCE,
 }
 
 
@@ -101,6 +118,8 @@ class QuickMoveProfile:
     velocity_scale: float = 0.95
     acceleration_scale: float = 0.85
     jerk_scale: float = 0.75
+    velocity_limit_source: str = "efort_public_leaflet"
+    torque_scale: float = 0.80
 
 
 def baseline_profile() -> QuickMoveProfile:
@@ -118,6 +137,7 @@ def baseline_profile() -> QuickMoveProfile:
         time_optimal_iters=100,
         finetune_iters=50,
         velocity_scale=0.55,
+        torque_scale=0.50,
         acceleration_scale=0.45,
         jerk_scale=0.40,
     )
