@@ -185,7 +185,7 @@ def rounded_door_reference_path(
     corner_radius_m: float,
     samples: int,
 ) -> np.ndarray:
-    """Build a rounded-corner door path in the TCP X-Z plane.
+    """Build a rounded-corner door path in the TCP Y-Z plane.
 
     The path starts at the lower-right post, moves upward, blends through a
     top-right quarter circle, moves laterally in the TCP Y direction, blends

@@ -11,6 +11,7 @@ from er15_quickmove.benchmark import (
 )
 from er15_quickmove.control import JointControlLimits
 from er15_quickmove.cartesian import cartesian_line_error, cartesian_path_error, rounded_door_reference_path
+from er15_quickmove.demo_trajectory import rounded_door_metadata
 
 
 class FakeTorqueModel:
@@ -100,3 +101,26 @@ def test_cartesian_path_error_uses_full_reference_polyline():
     max_error, _ = cartesian_path_error(tcp, reference)
 
     assert np.isclose(max_error, 0.5)
+
+
+def test_rounded_door_metadata_marks_shared_visualization_source():
+    class FakeTask:
+        start_q = [0.0] * 6
+        width_y_m = 0.12
+        height_z_m = 0.08
+        corner_radius_m = 0.02
+        payload_kg = 15.0
+        body_name = "link_6"
+        samples = 3
+
+    class FakePath:
+        start_tcp_m = [1.0, 0.0, 0.8]
+        goal_tcp_m = [1.0, -0.12, 0.8]
+        max_target_error_m = 1e-5
+        max_path_error_m = 2e-5
+        rms_path_error_m = 1e-5
+
+    metadata = rounded_door_metadata(FakeTask(), FakePath())
+
+    assert metadata["path_shape"] == "rounded_door"
+    assert metadata["width_y_m"] == 0.12

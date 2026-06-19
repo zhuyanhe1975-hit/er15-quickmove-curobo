@@ -32,17 +32,17 @@ printf '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_cartesian_line_payload.py" --json | tee "${OUT_DIR}/cartesian_rounded_door_payload_benchmark.json"
 
 printf '
-== Visualize QuickMove trajectory ==
+== Visualize rounded-door QuickMove+TrueMove trajectory ==
 '
 ${ISAACLAB_PY} "${ROOT_DIR}/scripts/visualize_cspace_motion.py" --output-dir "${OUT_DIR}"
 
 printf '
-== Render MuJoCo video ==
+== Render rounded-door MuJoCo video ==
 '
-${ISAACLAB_PY} "${ROOT_DIR}/scripts/visualize_mujoco_motion.py" --mode video --no-warmup --output "${OUT_DIR}/quickmove_mujoco.mp4"
+${ISAACLAB_PY} "${ROOT_DIR}/scripts/visualize_mujoco_motion.py" --mode video --no-warmup --output "${OUT_DIR}/rounded_door_mujoco.mp4"
 
 printf '
 Artifacts written to: %s
 ' "${OUT_DIR}"
-printf 'Open %s/quickmove_motion.html in a browser to inspect the motion.
+printf 'Open %s/rounded_door_motion.html in a browser to inspect the motion.
 ' "${OUT_DIR}"

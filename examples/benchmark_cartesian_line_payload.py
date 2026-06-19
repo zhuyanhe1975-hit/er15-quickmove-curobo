@@ -6,6 +6,7 @@ from dataclasses import asdict
 
 from er15_quickmove.benchmark import WeightedObjective, run_cartesian_line_payload_benchmark
 from er15_quickmove.cartesian import CartesianRoundedDoorTask, default_path_task
+from er15_quickmove.demo_trajectory import rounded_door_metadata
 
 
 def main() -> None:
@@ -32,21 +33,7 @@ def main() -> None:
     line_path, results = run_cartesian_line_payload_benchmark(task=task, dt=args.dt, objective=objective)
 
     payload = {
-        "task": {
-            "path_shape": "rounded_door",
-            "start_q": task.start_q,
-            "width_y_m": task.width_y_m,
-            "height_z_m": task.height_z_m,
-            "corner_radius_m": task.corner_radius_m,
-            "payload_kg": task.payload_kg,
-            "body_name": task.body_name,
-            "samples": task.samples,
-            "tcp_start_m": line_path.start_tcp_m,
-            "tcp_goal_m": line_path.goal_tcp_m,
-            "ik_max_target_error_m": line_path.max_target_error_m,
-            "ik_max_path_error_m": line_path.max_path_error_m,
-            "ik_rms_path_error_m": line_path.rms_path_error_m,
-        },
+        "task": rounded_door_metadata(task, line_path),
         "objective": asdict(objective),
         "results": [asdict(result) for result in results],
     }

@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from er15_quickmove import ER15QuickMovePlanner, quickmove_profile
+from er15_quickmove.demo_trajectory import rounded_door_payload_trajectory
 
 START = [0.0, -0.9, 1.25, 0.0, 0.55, 0.0]
 GOAL = [1.1, -0.35, 1.75, 1.2, 0.25, 2.4]
@@ -114,7 +115,7 @@ def _write_html(path: Path, positions: torch.Tensor, dt: float, max_frames: int)
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>ER15 QuickMove Motion</title>
+<title>ER15 QuickMove+TrueMove Motion</title>
 <style>
   body {{ margin: 0; font-family: Arial, sans-serif; background: #111; color: #eee; }}
   #hud {{ position: fixed; left: 16px; top: 12px; z-index: 2; font-size: 14px; }}
@@ -122,7 +123,7 @@ def _write_html(path: Path, positions: torch.Tensor, dt: float, max_frames: int)
 </style>
 </head>
 <body>
-<div id="hud">ER15-1400 QuickMove-like motion<br><span id="time"></span></div>
+<div id="hud">ER15-1400 rounded-door QuickMove+TrueMove motion<br><span id="time"></span></div>
 <canvas id="view"></canvas>
 <script>
 const DATA = {payload};
@@ -163,26 +164,33 @@ draw();
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Visualize the ER15 QuickMove-like trajectory.")
+    parser = argparse.ArgumentParser(description="Visualize the ER15 QuickMove+TrueMove trajectory.")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/quickmove_demo"))
     parser.add_argument("--max-frames", type=int, default=180)
+    parser.add_argument("--trajectory", choices=["rounded-door", "cspace"], default="rounded-door")
+    parser.add_argument("--payload-kg", type=float, default=15.0)
     parser.add_argument("--no-warmup", action="store_true")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    planner = ER15QuickMovePlanner(quickmove_profile())
-    planned = planner.plan_cspace(START, GOAL, warmup=not args.no_warmup)
-    if planned.report is None:
-        raise RuntimeError("QuickMove planning failed; no trajectory to visualize")
+    if args.trajectory == "rounded-door":
+        positions_np, dt, metadata = rounded_door_payload_trajectory(payload_kg=args.payload_kg)
+        positions = torch.as_tensor(positions_np, dtype=torch.float32)
+    else:
+        planner = ER15QuickMovePlanner(quickmove_profile())
+        planned = planner.plan_cspace(START, GOAL, warmup=not args.no_warmup)
+        if planned.report is None:
+            raise RuntimeError("QuickMove planning failed; no trajectory to visualize")
+        traj = planned.result.get_interpolated_plan()
+        positions = traj.position.detach().cpu().reshape(-1, traj.position.shape[-1])
+        dt = planner.profile.interpolation_dt
+        metadata = {"trajectory_source": "cspace", "trajectory": asdict(planned.report)}
 
-    traj = planned.result.get_interpolated_plan()
-    positions = traj.position.detach().cpu().reshape(-1, traj.position.shape[-1])
-    dt = planner.profile.interpolation_dt
-    metrics_path = args.output_dir / "quickmove_metrics.json"
-    plot_path = args.output_dir / "quickmove_joint_trajectory.png"
-    html_path = args.output_dir / "quickmove_motion.html"
+    metrics_path = args.output_dir / "rounded_door_metrics.json"
+    plot_path = args.output_dir / "rounded_door_joint_trajectory.png"
+    html_path = args.output_dir / "rounded_door_motion.html"
 
-    metrics_path.write_text(json.dumps(asdict(planned.report), indent=2), encoding="utf-8")
+    metrics_path.write_text(json.dumps({"trajectory_source": args.trajectory, **metadata}, indent=2), encoding="utf-8")
     _write_plot(plot_path, positions, dt)
     _write_html(html_path, positions, dt, args.max_frames)
     print(f"metrics={metrics_path}")

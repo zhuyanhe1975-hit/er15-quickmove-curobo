@@ -165,7 +165,8 @@ torque limits. A `--smoothstep` option is available for conservative path-law
 experiments, but the default preserves the cuRobo time law and pushes it toward
 the velocity/torque boundary.
 
-MuJoCo video render with the real ER15-1400 MJCF/STL model:
+MuJoCo video render with the real ER15-1400 MJCF/STL model. By default this
+plays the rounded-door QuickMove+TrueMove trajectory used by the fair benchmark:
 
 ```bash
 ./run_mujoco_visualization.sh video --no-warmup
@@ -177,7 +178,11 @@ MuJoCo interactive viewer, requires a desktop display:
 ./run_mujoco_visualization.sh viewer --no-warmup
 ```
 
-MuJoCo is the recommended fast visualization path for trajectory playback. Isaac Sim is available in the environment and is better suited for later high-fidelity scene integration, sensor rendering, and USD-based workflows.
+Pass `--trajectory cspace` only when you explicitly want to inspect the legacy
+joint start/goal demo. MuJoCo is the recommended fast visualization path for
+trajectory playback. Isaac Sim is available in the environment and is better
+suited for later high-fidelity scene integration, sensor rendering, and
+USD-based workflows.
 
 Cartesian pose planning:
 
