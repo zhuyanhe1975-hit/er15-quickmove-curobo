@@ -60,3 +60,12 @@ def test_curobo_urdf_velocity_matches_public_limits_and_effort_engineering_defau
             assert float(limit.attrib["effort"]) == ER15_PUBLIC_LIMITS["actuator_torque_upper_nm"][
                 ER15_PUBLIC_LIMITS["joint_names"].index(name)
             ]
+
+
+def test_project_paths_use_only_real_er15_models():
+    paths = ProjectPaths()
+
+    assert paths.robot_urdf.name == "ER15-1400-fulldyn-curobo.urdf"
+    assert paths.robot_source_urdf.name == "ER15-1400-fulldyn-local.urdf"
+    assert paths.robot_mjcf.name == "er15-1400.mjcf.xml"
+    assert not (paths.robot_asset_root / "er15_1400_approx.urdf").exists()

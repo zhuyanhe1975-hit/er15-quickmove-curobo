@@ -393,14 +393,6 @@ def run_cartesian_line_payload_benchmark(
             line_path.rms_line_error_m,
             objective,
         ),
-        _result_from_report(
-            "toppra_like_torque_limited_line",
-            quickmove_report,
-            {"path_mode": "tcp_line_preserving", "payload_kg": task.payload_kg},
-            line_path.max_line_error_m,
-            line_path.rms_line_error_m,
-            objective,
-        ),
         _smooth_line_result(line_path, dt, smooth_report, task.payload_kg, objective),
         _fastest_path_law(
             "moveit_like_parabolic_line_law",

@@ -19,8 +19,9 @@ limits.
   velocity placeholders are filled with public ER15 speed limits for cuRobo.
 - Dynamics/display model: real ER15-1400 MJCF/STL from
   `assets/er15_1400/er15-1400.mjcf.xml`.
-- The old project-local cylinder URDF remains only as a fallback/reference asset;
-  default planning and visualization paths no longer point to it.
+- The project no longer carries or falls back to the old simplified cylinder
+  arm model; planning, dynamics, and visualization all point at the real ER15
+  assets.
 
 Public ER15-1400 data used here comes from the EFORT ER15-1400 product
 page and product leaflet PDF published by EFORT in 2025:
@@ -53,7 +54,7 @@ Sources:
 ## Layout
 
 ```text
-assets/er15_1400/              legacy approximate URDF fallback/reference
+assets/er15_1400/              real ER15 URDF/MJCF/STL assets
 configs/er15_1400_curobo.yml   cuRobo config pointing to real ER15 URDF/STL
 examples/plan_cspace.py        minimal joint-space QuickMove-like demo
 examples/compare_cspace_profiles.py
@@ -138,7 +139,7 @@ The default weight is `cycle_time + 20 s/m * max TCP line error`. This makes the
 QuickMove part prefer shorter cycle time while the TrueMove part penalizes
 leaving the commanded straight line.
 
-Same-task benchmark against Ruckig/TOPP-RA/MoveIt-style baselines:
+Legacy same-start/same-goal benchmark against Ruckig/TOPP-RA/MoveIt-style baselines:
 
 ```bash
 TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_same_task.py --no-warmup
@@ -151,6 +152,10 @@ those adapters as skipped and includes local like-for-like baselines:
 `moveit_like_iterative_parabolic`. These are useful for method comparison on the
 same ER15 start/goal task, but should be replaced by direct adapters once the
 real packages are installed.
+
+This legacy benchmark is retained for manual reference, but the Cartesian
+line/payload benchmark above is the preferred health metric because it includes
+the TrueMove path-accuracy term.
 
 This torque-limited pass removes acceleration/jerk as direct hardware limits.
 It audits the cuRobo path with MuJoCo inverse dynamics and searches for the
@@ -206,10 +211,9 @@ Current QuickMove+TrueMove fair benchmark result on a TCP straight line with
 15 kg payload:
 
 ```text
-moveit_like_parabolic_line_law:        objective=0.1727 duration=0.1724 s path_error=0.015 mm
-quickmove_truemove_torque_limited_line objective=0.1775 duration=0.1773 s path_error=0.014 mm
-toppra_like_torque_limited_line:       objective=0.1775 duration=0.1773 s path_error=0.014 mm
-ruckig_like_quintic_line_law:          objective=0.1824 duration=0.1821 s path_error=0.016 mm
+moveit_like_parabolic_line_law:         objective=0.1727 duration=0.1724 s path_error=0.015 mm
+quickmove_truemove_torque_limited_line: objective=0.1775 duration=0.1773 s path_error=0.014 mm
+ruckig_like_quintic_line_law:           objective=0.1824 duration=0.1821 s path_error=0.016 mm
 endpoint_only_toppra_like_path_retiming objective=0.2074 duration=0.0980 s path_error=5.471 mm
 ```
 
@@ -260,5 +264,4 @@ ABB QuickMove is treated here as a behavior target:
 
 For production use, generate cuRobo collision spheres from the real STL meshes
 and tune `QuickMoveProfile` plus dynamics limits against measured ER15-1400
-controller traces. The old hand-authored cylinder-style collision spheres are
-not enabled by default.
+controller traces.

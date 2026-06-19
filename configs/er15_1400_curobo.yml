@@ -14,10 +14,8 @@ robot_cfg:
       - link_4
       - link_5
       - link_6
-    # cuRobo collision spheres are intentionally disabled by default.
-    # The old hand-authored spheres described a simplified cylinder robot and
-    # are not aligned to the real ER15 mesh link frames. Generate spheres from
-    # the real STL meshes before enabling self/world collision checks.
+    # cuRobo collision spheres are intentionally disabled by default until they
+    # are generated from the real ER15 STL link meshes.
     collision_link_names: []
     collision_sphere_buffer: 0.0
     collision_spheres: null

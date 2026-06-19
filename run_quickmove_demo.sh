@@ -27,11 +27,6 @@ printf '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/torque_limited_time_scaling.py" --no-warmup --json | tee "${OUT_DIR}/torque_limited_retiming.json"
 
 printf '
-== Same-task benchmark ==
-'
-${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_same_task.py" --no-warmup --json | tee "${OUT_DIR}/same_task_benchmark.json"
-
-printf '
 == Cartesian line payload benchmark ==
 '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_cartesian_line_payload.py" --json | tee "${OUT_DIR}/cartesian_line_payload_benchmark.json"
