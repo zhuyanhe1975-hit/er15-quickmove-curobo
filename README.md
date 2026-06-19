@@ -127,13 +127,15 @@ TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_cartesian_line
 ```
 
 This is now the preferred comparison for method validation. It fixes the task as
-a reachable 120 mm x 80 mm rounded-door path with 20 mm top corner radius,
-injects the rated 15 kg payload into the MuJoCo dynamics model at runtime, and
-ranks methods by a weighted objective:
+a reachable 500 mm x 300 mm rounded-door path with 75 mm top corner radius,
+keeps the TCP orientation fixed over the whole path, injects the rated 15 kg
+payload into the MuJoCo dynamics model at runtime, and ranks methods by a
+weighted objective:
 
 ```text
 objective = cycle_time_weight * duration_s
-          + max_path_error_weight_s_per_m * max_tcp_line_error_m
+          + max_path_error_weight_s_per_m * max_tcp_path_error_m
+          + max_orientation_error_weight_s_per_rad * max_tcp_orientation_error_rad
 ```
 
 The default weight is `cycle_time + 20 s/m * max TCP path error`. This makes the
@@ -214,13 +216,13 @@ saved_percent=50.0
 ```
 
 Current QuickMove+TrueMove fair benchmark result on a rounded-door TCP path with
-15 kg payload:
+15 kg payload and fixed TCP orientation:
 
 ```text
-quickmove_truemove_torque_limited_path: objective=0.4620 duration=0.4615 s path_error=0.026 mm
-moveit_like_parabolic_path_law:         objective=0.6307 duration=0.6302 s path_error=0.026 mm
-ruckig_like_quintic_path_law:           objective=0.7838 duration=0.7833 s path_error=0.026 mm
-endpoint_only_toppra_like_path_retiming objective=1.2189 duration=0.0197 s path_error=59.963 mm
+quickmove_truemove_torque_limited_path: objective=0.5766 duration=0.5762 s path_error=0.017 mm orientation_error=0.042 mrad
+moveit_like_parabolic_path_law:         objective=0.7822 duration=0.7818 s path_error=0.016 mm orientation_error=0.042 mrad
+ruckig_like_quintic_path_law:           objective=0.9502 duration=0.9498 s path_error=0.017 mm orientation_error=0.042 mrad
+endpoint_only_toppra_like_path_retiming objective=5.1654 duration=0.1328 s path_error=250.465 mm orientation_error=23.341 mrad
 ```
 
 The endpoint-only result is intentionally shown: it can look fast on raw cycle

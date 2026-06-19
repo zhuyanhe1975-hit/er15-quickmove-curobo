@@ -55,6 +55,7 @@ def main() -> None:
         print(
             f"{result.name}: objective={result.objective_score:.4f} duration={result.duration_s:.4f}s "
             f"max_path_error={result.max_path_error_m * 1000.0:.3f}mm "
+            f"max_orientation_error={result.max_orientation_error_rad * 1000.0:.3f}mrad "
             f"torque={result.peak_torque_ratio:.3f} velocity={result.peak_velocity_ratio:.3f} "
             f"limit={result.limiting_joint}"
         )

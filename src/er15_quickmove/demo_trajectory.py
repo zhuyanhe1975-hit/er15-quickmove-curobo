@@ -26,6 +26,7 @@ def rounded_door_payload_trajectory(
         body_name=base_task.body_name,
         payload_kg=payload_kg,
         ik_tolerance_m=base_task.ik_tolerance_m,
+        ik_orientation_tolerance_rad=base_task.ik_orientation_tolerance_rad,
         ik_max_iterations=base_task.ik_max_iterations,
     )
     objective = WeightedObjective(max_path_error_weight_s_per_m=path_weight)
@@ -57,4 +58,6 @@ def rounded_door_metadata(task: CartesianRoundedDoorTask, path: CartesianPath) -
         "ik_max_target_error_m": path.max_target_error_m,
         "ik_max_path_error_m": path.max_path_error_m,
         "ik_rms_path_error_m": path.rms_path_error_m,
+        "ik_max_orientation_error_rad": path.max_orientation_error_rad,
+        "ik_rms_orientation_error_rad": path.rms_orientation_error_rad,
     }

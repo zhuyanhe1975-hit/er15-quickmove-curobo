@@ -119,8 +119,22 @@ def test_rounded_door_metadata_marks_shared_visualization_source():
         max_target_error_m = 1e-5
         max_path_error_m = 2e-5
         rms_path_error_m = 1e-5
+        max_orientation_error_rad = 3e-5
+        rms_orientation_error_rad = 2e-5
 
     metadata = rounded_door_metadata(FakeTask(), FakePath())
 
     assert metadata["path_shape"] == "rounded_door"
     assert metadata["width_y_m"] == 0.12
+    assert metadata["ik_max_orientation_error_rad"] == 3e-5
+
+
+def test_default_rounded_door_task_is_large_and_central():
+    from er15_quickmove.cartesian import default_path_task
+
+    task = default_path_task()
+
+    assert task.width_y_m == 0.50
+    assert task.height_z_m == 0.30
+    assert task.corner_radius_m == 0.075
+    assert abs(task.start_q[1]) < 0.2

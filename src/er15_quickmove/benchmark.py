@@ -15,6 +15,7 @@ from er15_quickmove.cartesian import (
     MujocoCartesianKinematics,
     cartesian_path_error,
     default_path_task,
+    rotation_vector_error,
 )
 from er15_quickmove.control import JointControlLimits, build_control_limits
 from er15_quickmove.torque import (
@@ -30,9 +31,14 @@ from er15_quickmove.torque import (
 class WeightedObjective:
     cycle_time_weight: float = 1.0
     max_path_error_weight_s_per_m: float = 20.0
+    max_orientation_error_weight_s_per_rad: float = 1.0
 
-    def score(self, duration_s: float, max_path_error_m: float) -> float:
-        return float(self.cycle_time_weight * duration_s + self.max_path_error_weight_s_per_m * max_path_error_m)
+    def score(self, duration_s: float, max_path_error_m: float, max_orientation_error_rad: float = 0.0) -> float:
+        return float(
+            self.cycle_time_weight * duration_s
+            + self.max_path_error_weight_s_per_m * max_path_error_m
+            + self.max_orientation_error_weight_s_per_rad * max_orientation_error_rad
+        )
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,8 @@ class BenchmarkResult:
     limiting_joint: str | None
     max_path_error_m: float | None
     rms_path_error_m: float | None
+    max_orientation_error_rad: float | None
+    rms_orientation_error_rad: float | None
     objective_score: float | None
     details: dict[str, Any]
 
@@ -56,11 +64,13 @@ def _result_from_report(
     details: dict[str, Any] | None = None,
     max_path_error_m: float | None = None,
     rms_path_error_m: float | None = None,
+    max_orientation_error_rad: float | None = None,
+    rms_orientation_error_rad: float | None = None,
     objective: WeightedObjective | None = None,
 ) -> BenchmarkResult:
     score = None
     if objective is not None and max_path_error_m is not None:
-        score = objective.score(report.duration_s, max_path_error_m)
+        score = objective.score(report.duration_s, max_path_error_m, max_orientation_error_rad or 0.0)
     return BenchmarkResult(
         name=name,
         status="ok" if report.feasible else "infeasible",
@@ -71,6 +81,8 @@ def _result_from_report(
         limiting_joint=report.limiting_joint,
         max_path_error_m=max_path_error_m,
         rms_path_error_m=rms_path_error_m,
+        max_orientation_error_rad=max_orientation_error_rad,
+        rms_orientation_error_rad=rms_orientation_error_rad,
         objective_score=score,
         details={**(details or {}), "torque_report": asdict(report)},
     )
@@ -87,6 +99,8 @@ def _skipped(name: str, reason: str) -> BenchmarkResult:
         limiting_joint=None,
         max_path_error_m=None,
         rms_path_error_m=None,
+        max_orientation_error_rad=None,
+        rms_orientation_error_rad=None,
         objective_score=None,
         details={"reason": reason},
     )
@@ -230,23 +244,41 @@ def _fastest_path_law(
             if upper - lower <= tolerance:
                 break
     best = TorqueLimitReport(**{**best.__dict__, "iterations": iterations})
-    max_err, rms_err = _path_error_for_positions(best_positions, reference_path)
+    max_err, rms_err, max_ori, rms_ori = _pose_error_for_positions(best_positions, reference_path)
     return _result_from_report(
         name,
         best,
         {"path_mode": "reference_path_preserving", "law": getattr(scalar_law, "__name__", "scalar_law")},
         max_err,
         rms_err,
+        max_ori,
+        rms_ori,
         objective,
     )
 
 
-def _path_error_for_positions(positions: np.ndarray, reference_path: CartesianPath) -> tuple[float, float]:
+def _pose_error_for_positions(positions: np.ndarray, reference_path: CartesianPath) -> tuple[float, float, float, float]:
     if positions.shape == reference_path.positions.shape and np.allclose(positions, reference_path.positions):
-        return reference_path.max_line_error_m, reference_path.rms_line_error_m
+        return (
+            reference_path.max_line_error_m,
+            reference_path.rms_line_error_m,
+            reference_path.max_orientation_error_rad,
+            reference_path.rms_orientation_error_rad,
+        )
     kinematics = MujocoCartesianKinematics()
     tcp = kinematics.body_positions(positions)
-    return cartesian_path_error(tcp, reference_path.reference_tcp_positions_m)
+    rotations = kinematics.body_rotations(positions)
+    orientation_errors = np.array(
+        [np.linalg.norm(rotation_vector_error(rotation, reference_path.reference_rotation)) for rotation in rotations],
+        dtype=float,
+    )
+    max_path, rms_path = cartesian_path_error(tcp, reference_path.reference_tcp_positions_m)
+    return (
+        max_path,
+        rms_path,
+        float(np.max(orientation_errors)),
+        float(np.sqrt(np.mean(orientation_errors**2))),
+    )
 
 
 def ruckig_like_baseline(
@@ -349,13 +381,15 @@ def _smooth_path_result(
     objective: WeightedObjective,
 ) -> BenchmarkResult:
     sampled, _ = smoothstep_resample_path(reference_path.positions, dt, report.time_scale)
-    max_err, rms_err = _path_error_for_positions(sampled, reference_path)
+    max_err, rms_err, max_ori, rms_ori = _pose_error_for_positions(sampled, reference_path)
     return _result_from_report(
         "ruckig_like_quintic_path_law",
         report,
         {"path_mode": "reference_path_preserving", "payload_kg": payload_kg},
         max_err,
         rms_err,
+        max_ori,
+        rms_ori,
         objective,
     )
 
@@ -397,6 +431,8 @@ def run_cartesian_line_payload_benchmark(
             {"path_mode": path_mode, "payload_kg": task.payload_kg},
             reference_path.max_line_error_m,
             reference_path.rms_line_error_m,
+            reference_path.max_orientation_error_rad,
+            reference_path.rms_orientation_error_rad,
             objective,
         ),
         _smooth_path_result(reference_path, dt, smooth_report, task.payload_kg, objective),
@@ -427,7 +463,7 @@ def run_cartesian_line_payload_benchmark(
             positions, _ = trapezoid_like_trajectory(endpoint_start, endpoint_goal, result.duration_s, dt)
         else:
             positions = np.linspace(np.asarray(endpoint_start), np.asarray(endpoint_goal), 101)
-        max_err, rms_err = _path_error_for_positions(positions, reference_path)
+        max_err, rms_err, max_ori, rms_ori = _pose_error_for_positions(positions, reference_path)
         results.append(
             BenchmarkResult(
                 name=f"endpoint_only_{result.name}",
@@ -439,7 +475,9 @@ def run_cartesian_line_payload_benchmark(
                 limiting_joint=result.limiting_joint,
                 max_path_error_m=max_err,
                 rms_path_error_m=rms_err,
-                objective_score=objective.score(result.duration_s, max_err),
+                max_orientation_error_rad=max_ori,
+                rms_orientation_error_rad=rms_ori,
+                objective_score=objective.score(result.duration_s, max_err, max_ori),
                 details={**result.details, "path_mode": "joint_endpoint_not_truemove"},
             )
         )
