@@ -10,7 +10,7 @@ from er15_quickmove.benchmark import (
     toppra_like_baseline,
 )
 from er15_quickmove.control import JointControlLimits
-from er15_quickmove.cartesian import cartesian_line_error
+from er15_quickmove.cartesian import cartesian_line_error, cartesian_path_error, rounded_door_reference_path
 
 
 class FakeTorqueModel:
@@ -71,3 +71,32 @@ def test_cartesian_line_error_reports_deviation_from_tcp_line():
 
     assert np.isclose(max_error, 0.01)
     assert rms_error > 0.0
+
+
+def test_rounded_door_reference_path_has_expected_extent():
+    path = rounded_door_reference_path(
+        np.array([1.0, 0.0, 1.0]),
+        width_y_m=0.12,
+        height_z_m=0.08,
+        corner_radius_m=0.02,
+        samples=51,
+    )
+
+    assert path.shape == (51, 3)
+    assert np.isclose(path[0, 0], 1.0)
+    assert np.isclose(path[-1, 1], -0.12)
+    assert np.isclose(path[-1, 0], 1.0)
+    assert np.isclose(path[:, 2].max(), 1.08, atol=1e-4)
+
+
+def test_cartesian_path_error_uses_full_reference_polyline():
+    reference = np.array([
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0],
+        [1.0, 0.0, 1.0],
+    ])
+    tcp = np.array([[0.5, 0.0, 0.5]])
+
+    max_error, _ = cartesian_path_error(tcp, reference)
+
+    assert np.isclose(max_error, 0.5)

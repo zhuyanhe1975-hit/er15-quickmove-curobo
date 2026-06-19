@@ -27,9 +27,9 @@ printf '
 ${ISAACLAB_PY} "${ROOT_DIR}/examples/torque_limited_time_scaling.py" --no-warmup --json | tee "${OUT_DIR}/torque_limited_retiming.json"
 
 printf '
-== Cartesian line payload benchmark ==
+== Cartesian rounded-door payload benchmark ==
 '
-${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_cartesian_line_payload.py" --json | tee "${OUT_DIR}/cartesian_line_payload_benchmark.json"
+${ISAACLAB_PY} "${ROOT_DIR}/examples/benchmark_cartesian_line_payload.py" --json | tee "${OUT_DIR}/cartesian_rounded_door_payload_benchmark.json"
 
 printf '
 == Visualize QuickMove trajectory ==

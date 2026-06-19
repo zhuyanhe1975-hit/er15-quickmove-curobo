@@ -12,9 +12,13 @@ from er15_quickmove.benchmark import (
 from er15_quickmove.cartesian import (
     CartesianLinePath,
     CartesianLineTask,
+    CartesianPath,
+    CartesianRoundedDoorTask,
     MujocoCartesianKinematics,
     cartesian_line_error,
+    cartesian_path_error,
     default_line_task,
+    default_path_task,
 )
 from er15_quickmove.config import (
     ER15_LIMIT_SOURCE,
@@ -43,6 +47,8 @@ __all__ = [
     "BenchmarkResult",
     "CartesianLinePath",
     "CartesianLineTask",
+    "CartesianPath",
+    "CartesianRoundedDoorTask",
     "ER15_LIMIT_SOURCE",
     "ER15_PUBLIC_LIMITS",
     "ER15QuickMovePlanner",
@@ -53,8 +59,10 @@ __all__ = [
     "baseline_profile",
     "audit_torque_limits",
     "cartesian_line_error",
+    "cartesian_path_error",
     "build_control_limits",
     "default_line_task",
+    "default_path_task",
     "find_torque_limited_time_scale",
     "moveit_like_baseline",
     "quickmove_profile",

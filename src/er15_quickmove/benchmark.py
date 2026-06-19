@@ -9,11 +9,12 @@ from typing import Any, Callable
 import numpy as np
 
 from er15_quickmove.cartesian import (
-    CartesianLinePath,
     CartesianLineTask,
+    CartesianPath,
+    CartesianRoundedDoorTask,
     MujocoCartesianKinematics,
-    cartesian_line_error,
-    default_line_task,
+    cartesian_path_error,
+    default_path_task,
 )
 from er15_quickmove.control import JointControlLimits, build_control_limits
 from er15_quickmove.torque import (
@@ -191,7 +192,7 @@ def _fastest_path_law(
     control_limits: JointControlLimits,
     torque_model: MujocoTorqueModel,
     objective: WeightedObjective,
-    line_path: CartesianLinePath,
+    reference_path: CartesianPath,
     min_duration: float = 0.05,
     max_duration: float = 20.0,
     tolerance: float = 1e-3,
@@ -206,7 +207,7 @@ def _fastest_path_law(
         upper *= 2.0
         report, best_positions, _ = evaluate(upper)
     if not report.feasible:
-        return _result_from_report(name, report, {"path_mode": "tcp_line_preserving"})
+        return _result_from_report(name, report, {"path_mode": "reference_path_preserving"})
 
     lower = min_duration
     lower_report, lower_positions, _ = evaluate(lower)
@@ -229,23 +230,23 @@ def _fastest_path_law(
             if upper - lower <= tolerance:
                 break
     best = TorqueLimitReport(**{**best.__dict__, "iterations": iterations})
-    max_err, rms_err = _path_error_for_positions(best_positions, line_path)
+    max_err, rms_err = _path_error_for_positions(best_positions, reference_path)
     return _result_from_report(
         name,
         best,
-        {"path_mode": "tcp_line_preserving", "law": getattr(scalar_law, "__name__", "scalar_law")},
+        {"path_mode": "reference_path_preserving", "law": getattr(scalar_law, "__name__", "scalar_law")},
         max_err,
         rms_err,
         objective,
     )
 
 
-def _path_error_for_positions(positions: np.ndarray, line_path: CartesianLinePath) -> tuple[float, float]:
-    if positions.shape == line_path.positions.shape and np.allclose(positions, line_path.positions):
-        return line_path.max_line_error_m, line_path.rms_line_error_m
+def _path_error_for_positions(positions: np.ndarray, reference_path: CartesianPath) -> tuple[float, float]:
+    if positions.shape == reference_path.positions.shape and np.allclose(positions, reference_path.positions):
+        return reference_path.max_line_error_m, reference_path.rms_line_error_m
     kinematics = MujocoCartesianKinematics()
     tcp = kinematics.body_positions(positions)
-    return cartesian_line_error(tcp, line_path.reference_tcp_positions_m[0], line_path.reference_tcp_positions_m[-1])
+    return cartesian_path_error(tcp, reference_path.reference_tcp_positions_m)
 
 
 def ruckig_like_baseline(
@@ -340,19 +341,19 @@ def run_same_task_benchmark(
     return results
 
 
-def _smooth_line_result(
-    line_path: CartesianLinePath,
+def _smooth_path_result(
+    reference_path: CartesianPath,
     dt: float,
     report: TorqueLimitReport,
     payload_kg: float,
     objective: WeightedObjective,
 ) -> BenchmarkResult:
-    sampled, _ = smoothstep_resample_path(line_path.positions, dt, report.time_scale)
-    max_err, rms_err = _path_error_for_positions(sampled, line_path)
+    sampled, _ = smoothstep_resample_path(reference_path.positions, dt, report.time_scale)
+    max_err, rms_err = _path_error_for_positions(sampled, reference_path)
     return _result_from_report(
-        "ruckig_like_quintic_line_law",
+        "ruckig_like_quintic_path_law",
         report,
-        {"path_mode": "tcp_line_preserving", "payload_kg": payload_kg},
+        {"path_mode": "reference_path_preserving", "payload_kg": payload_kg},
         max_err,
         rms_err,
         objective,
@@ -360,23 +361,28 @@ def _smooth_line_result(
 
 
 def run_cartesian_line_payload_benchmark(
-    task: CartesianLineTask | None = None,
+    task: CartesianLineTask | CartesianRoundedDoorTask | None = None,
     dt: float = 0.01,
     objective: WeightedObjective | None = None,
     control_limits: JointControlLimits | None = None,
-) -> tuple[CartesianLinePath, list[BenchmarkResult]]:
-    task = task or default_line_task()
+) -> tuple[CartesianPath, list[BenchmarkResult]]:
+    task = task or default_path_task()
     objective = objective or WeightedObjective()
     control_limits = control_limits or build_control_limits()
     kinematics = MujocoCartesianKinematics()
-    line_path = kinematics.solve_line_path(task)
+    if isinstance(task, CartesianRoundedDoorTask):
+        reference_path = kinematics.solve_rounded_door_path(task)
+        path_mode = "rounded_door_preserving"
+    else:
+        reference_path = kinematics.solve_line_path(task)
+        path_mode = "tcp_line_preserving"
     torque_model = MujocoTorqueModel(payload_kg=task.payload_kg)
 
     quickmove_report = find_torque_limited_time_scale(
-        line_path.positions, dt, control_limits, torque_model, min_scale=0.01, max_scale=100.0
+        reference_path.positions, dt, control_limits, torque_model, min_scale=0.01, max_scale=100.0
     )
     smooth_report = find_torque_limited_time_scale(
-        line_path.positions,
+        reference_path.positions,
         dt,
         control_limits,
         torque_model,
@@ -386,30 +392,30 @@ def run_cartesian_line_payload_benchmark(
     )
     results = [
         _result_from_report(
-            "quickmove_truemove_torque_limited_line",
+            "quickmove_truemove_torque_limited_path",
             quickmove_report,
-            {"path_mode": "tcp_line_preserving", "payload_kg": task.payload_kg},
-            line_path.max_line_error_m,
-            line_path.rms_line_error_m,
+            {"path_mode": path_mode, "payload_kg": task.payload_kg},
+            reference_path.max_line_error_m,
+            reference_path.rms_line_error_m,
             objective,
         ),
-        _smooth_line_result(line_path, dt, smooth_report, task.payload_kg, objective),
+        _smooth_path_result(reference_path, dt, smooth_report, task.payload_kg, objective),
         _fastest_path_law(
-            "moveit_like_parabolic_line_law",
-            line_path.positions,
+            "moveit_like_parabolic_path_law",
+            reference_path.positions,
             dt,
             trapezoid_scalar_law,
             control_limits,
             torque_model,
             objective,
-            line_path,
+            reference_path,
         ),
     ]
 
     # Endpoint-only baselines are intentionally retained with their path error so
     # the weighted objective shows why raw cycle time alone is not a TrueMove metric.
-    endpoint_start = line_path.positions[0].tolist()
-    endpoint_goal = line_path.positions[-1].tolist()
+    endpoint_start = reference_path.positions[0].tolist()
+    endpoint_goal = reference_path.positions[-1].tolist()
     for baseline in [ruckig_like_baseline, toppra_like_baseline, moveit_like_baseline]:
         result = baseline(endpoint_start, endpoint_goal, dt, control_limits, torque_model)
         if result.duration_s is None:
@@ -421,7 +427,7 @@ def run_cartesian_line_payload_benchmark(
             positions, _ = trapezoid_like_trajectory(endpoint_start, endpoint_goal, result.duration_s, dt)
         else:
             positions = np.linspace(np.asarray(endpoint_start), np.asarray(endpoint_goal), 101)
-        max_err, rms_err = _path_error_for_positions(positions, line_path)
+        max_err, rms_err = _path_error_for_positions(positions, reference_path)
         results.append(
             BenchmarkResult(
                 name=f"endpoint_only_{result.name}",
@@ -439,4 +445,4 @@ def run_cartesian_line_payload_benchmark(
         )
 
     results.extend(optional_dependency_results())
-    return line_path, results
+    return reference_path, results

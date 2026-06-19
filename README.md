@@ -61,7 +61,7 @@ examples/compare_cspace_profiles.py
                                 baseline vs QuickMove-like cycle-time report
 examples/plan_pose.py          Cartesian pose planning demo
 examples/benchmark_cartesian_line_payload.py
-                                QuickMove+TrueMove line/payload benchmark
+                                QuickMove+TrueMove rounded-door/payload benchmark
 src/er15_quickmove/            Python package
 tests/                         lightweight tests
 ```
@@ -120,24 +120,25 @@ TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/torque_limited_time_scal
 ```
 
 
-QuickMove+TrueMove fair benchmark on a TCP straight line with rated payload:
+QuickMove+TrueMove fair benchmark on a rounded-door TCP path with rated payload:
 
 ```bash
 TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_cartesian_line_payload.py
 ```
 
 This is now the preferred comparison for method validation. It fixes the task as
-a reachable TCP straight line, injects the rated 15 kg payload into the MuJoCo
-dynamics model at runtime, and ranks methods by a weighted objective:
+a reachable 120 mm x 80 mm rounded-door path with 20 mm top corner radius,
+injects the rated 15 kg payload into the MuJoCo dynamics model at runtime, and
+ranks methods by a weighted objective:
 
 ```text
 objective = cycle_time_weight * duration_s
           + max_path_error_weight_s_per_m * max_tcp_line_error_m
 ```
 
-The default weight is `cycle_time + 20 s/m * max TCP line error`. This makes the
+The default weight is `cycle_time + 20 s/m * max TCP path error`. This makes the
 QuickMove part prefer shorter cycle time while the TrueMove part penalizes
-leaving the commanded straight line.
+leaving the commanded door path.
 
 Legacy same-start/same-goal benchmark against Ruckig/TOPP-RA/MoveIt-style baselines:
 
@@ -207,18 +208,18 @@ saved_time_s=0.600
 saved_percent=50.0
 ```
 
-Current QuickMove+TrueMove fair benchmark result on a TCP straight line with
+Current QuickMove+TrueMove fair benchmark result on a rounded-door TCP path with
 15 kg payload:
 
 ```text
-moveit_like_parabolic_line_law:         objective=0.1727 duration=0.1724 s path_error=0.015 mm
-quickmove_truemove_torque_limited_line: objective=0.1775 duration=0.1773 s path_error=0.014 mm
-ruckig_like_quintic_line_law:           objective=0.1824 duration=0.1821 s path_error=0.016 mm
-endpoint_only_toppra_like_path_retiming objective=0.2074 duration=0.0980 s path_error=5.471 mm
+quickmove_truemove_torque_limited_path: objective=0.4620 duration=0.4615 s path_error=0.026 mm
+moveit_like_parabolic_path_law:         objective=0.6307 duration=0.6302 s path_error=0.026 mm
+ruckig_like_quintic_path_law:           objective=0.7838 duration=0.7833 s path_error=0.026 mm
+endpoint_only_toppra_like_path_retiming objective=1.2189 duration=0.0197 s path_error=59.963 mm
 ```
 
 The endpoint-only result is intentionally shown: it can look fast on raw cycle
-time, but it does not satisfy the same TCP straight-line TrueMove task and is
+time, but it does not satisfy the same rounded-door TrueMove task and is
 penalized by the path-error term.
 
 Legacy same-start/same-goal joint-space benchmark result:
