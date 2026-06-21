@@ -179,6 +179,8 @@ MuJoCo interactive viewer, requires a desktop display:
 
 ```bash
 ./run_mujoco_visualization.sh viewer --no-warmup
+# Equivalent argparse-style form:
+./run_mujoco_visualization.sh --mode viewer --no-warmup
 ```
 
 Pass `--trajectory cspace` only when you explicitly want to inspect the legacy
