@@ -127,9 +127,10 @@ TERM=xterm /home/yhzhu/isaaclab/isaaclab.sh -p examples/benchmark_cartesian_line
 ```
 
 This is now the preferred comparison for method validation. It fixes the task as
-a reachable 500 mm x 300 mm rounded-door path with 75 mm top corner radius,
-keeps the TCP orientation fixed over the whole path, injects the rated 15 kg
-payload into the MuJoCo dynamics model at runtime, and ranks methods by a
+a reachable, workspace-centered 650 mm x 400 mm rounded-door path with 100 mm
+top corner radius, keeps the TCP orientation fixed with the tool Z axis pointing
+down and the other tool axes parallel to the world frame, injects the rated
+15 kg payload into the MuJoCo dynamics model at runtime, and ranks methods by a
 weighted objective:
 
 ```text
@@ -219,10 +220,10 @@ Current QuickMove+TrueMove fair benchmark result on a rounded-door TCP path with
 15 kg payload and fixed TCP orientation:
 
 ```text
-quickmove_truemove_torque_limited_path: objective=0.5766 duration=0.5762 s path_error=0.017 mm orientation_error=0.042 mrad
-moveit_like_parabolic_path_law:         objective=0.7822 duration=0.7818 s path_error=0.016 mm orientation_error=0.042 mrad
-ruckig_like_quintic_path_law:           objective=0.9502 duration=0.9498 s path_error=0.017 mm orientation_error=0.042 mrad
-endpoint_only_toppra_like_path_retiming objective=5.1654 duration=0.1328 s path_error=250.465 mm orientation_error=23.341 mrad
+quickmove_truemove_torque_limited_path: objective=0.6954 duration=0.6946 s path_error=0.036 mm orientation_error=0.078 mrad
+ruckig_like_quintic_path_law:           objective=1.1077 duration=1.1069 s path_error=0.036 mm orientation_error=0.078 mrad
+moveit_like_parabolic_path_law:         objective=1.1102 duration=1.1094 s path_error=0.036 mm orientation_error=0.078 mrad
+endpoint_only_toppra_like_path_retiming objective=7.0587 duration=0.2440 s path_error=337.107 mm orientation_error=72.554 mrad
 ```
 
 The endpoint-only result is intentionally shown: it can look fast on raw cycle

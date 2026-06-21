@@ -16,6 +16,7 @@ class CartesianLineTask:
     samples: int = 101
     body_name: str = "link_6"
     payload_kg: float = 15.0
+    target_rotation: list[list[float]] | None = None
     ik_tolerance_m: float = 5e-4
     ik_orientation_tolerance_rad: float = 5e-4
     ik_max_iterations: int = 120
@@ -30,6 +31,7 @@ class CartesianRoundedDoorTask:
     samples: int = 161
     body_name: str = "link_6"
     payload_kg: float = 15.0
+    target_rotation: list[list[float]] | None = None
     ik_tolerance_m: float = 5e-4
     ik_orientation_tolerance_rad: float = 5e-4
     ik_max_iterations: int = 160
@@ -101,6 +103,7 @@ class MujocoCartesianKinematics:
 
     def solve_line_path(self, task: CartesianLineTask) -> CartesianPath:
         start_tcp, start_rotation = self.fk_body_pose(np.asarray(task.start_q, dtype=float), task.body_name)
+        target_rotation = np.asarray(task.target_rotation, dtype=float) if task.target_rotation is not None else start_rotation
         delta = np.asarray(task.delta_xyz_m, dtype=float)
         references = start_tcp[None, :] + np.linspace(0.0, 1.0, task.samples)[:, None] * delta[None, :]
         return self.solve_reference_path(
@@ -110,11 +113,12 @@ class MujocoCartesianKinematics:
             ik_tolerance_m=task.ik_tolerance_m,
             ik_orientation_tolerance_rad=task.ik_orientation_tolerance_rad,
             ik_max_iterations=task.ik_max_iterations,
-            target_rotation=start_rotation,
+            target_rotation=target_rotation,
         )
 
     def solve_rounded_door_path(self, task: CartesianRoundedDoorTask) -> CartesianPath:
         start_tcp, start_rotation = self.fk_body_pose(np.asarray(task.start_q, dtype=float), task.body_name)
+        target_rotation = np.asarray(task.target_rotation, dtype=float) if task.target_rotation is not None else start_rotation
         references = rounded_door_reference_path(
             start_tcp,
             width_y_m=task.width_y_m,
@@ -129,7 +133,7 @@ class MujocoCartesianKinematics:
             ik_tolerance_m=task.ik_tolerance_m,
             ik_orientation_tolerance_rad=task.ik_orientation_tolerance_rad,
             ik_max_iterations=task.ik_max_iterations,
-            target_rotation=start_rotation,
+            target_rotation=target_rotation,
         )
 
     def solve_reference_path(
@@ -324,10 +328,17 @@ def default_line_task() -> CartesianLineTask:
 
 def default_path_task() -> CartesianRoundedDoorTask:
     return CartesianRoundedDoorTask(
-        start_q=[0.023, 0.075, -0.479, 0.669, -0.767, 0.0],
-        width_y_m=0.50,
-        height_z_m=0.30,
-        corner_radius_m=0.075,
-        samples=241,
+        start_q=[0.756, 0.075, -0.812, -0.526, 1.533, -1.208],
+        width_y_m=0.65,
+        height_z_m=0.40,
+        corner_radius_m=0.10,
+        samples=261,
         payload_kg=15.0,
+        target_rotation=downward_tool_rotation().tolist(),
     )
+
+
+def downward_tool_rotation() -> np.ndarray:
+    """World-aligned TCP frame with tool Z axis pointing downward."""
+
+    return np.diag([1.0, -1.0, -1.0])

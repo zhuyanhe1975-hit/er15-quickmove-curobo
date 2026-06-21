@@ -67,8 +67,8 @@ def play_viewer(positions: np.ndarray, dt: float, model_path: Path) -> None:
     with mujoco.viewer.launch_passive(model, data) as viewer:
         viewer.cam.azimuth = 135
         viewer.cam.elevation = -22
-        viewer.cam.distance = 2.4
-        viewer.cam.lookat[:] = np.array([0.8, -0.12, 0.82])
+        viewer.cam.distance = 2.2
+        viewer.cam.lookat[:] = np.array([0.55, 0.25, 0.9])
         while viewer.is_running():
             for q in positions:
                 if not viewer.is_running():
@@ -90,8 +90,8 @@ def render_video(positions: np.ndarray, output_path: Path, fps: int, width: int,
     camera = mujoco.MjvCamera()
     camera.azimuth = 135
     camera.elevation = -22
-    camera.distance = 2.4
-    camera.lookat[:] = np.array([0.8, -0.12, 0.82])
+    camera.distance = 2.2
+    camera.lookat[:] = np.array([0.55, 0.25, 0.9])
     for q in positions[::stride]:
         data.qpos[:] = q
         mujoco.mj_forward(model, data)

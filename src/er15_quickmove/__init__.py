@@ -19,6 +19,7 @@ from er15_quickmove.cartesian import (
     cartesian_path_error,
     default_line_task,
     default_path_task,
+    downward_tool_rotation,
 )
 from er15_quickmove.config import (
     ER15_LIMIT_SOURCE,
@@ -63,6 +64,7 @@ __all__ = [
     "build_control_limits",
     "default_line_task",
     "default_path_task",
+    "downward_tool_rotation",
     "find_torque_limited_time_scale",
     "moveit_like_baseline",
     "quickmove_profile",

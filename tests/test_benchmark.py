@@ -110,6 +110,7 @@ def test_rounded_door_metadata_marks_shared_visualization_source():
         height_z_m = 0.08
         corner_radius_m = 0.02
         payload_kg = 15.0
+        target_rotation = [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]
         body_name = "link_6"
         samples = 3
 
@@ -134,7 +135,7 @@ def test_default_rounded_door_task_is_large_and_central():
 
     task = default_path_task()
 
-    assert task.width_y_m == 0.50
-    assert task.height_z_m == 0.30
-    assert task.corner_radius_m == 0.075
-    assert abs(task.start_q[1]) < 0.2
+    assert task.width_y_m == 0.65
+    assert task.height_z_m == 0.40
+    assert task.corner_radius_m == 0.10
+    assert task.target_rotation == [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]
